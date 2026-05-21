@@ -15,6 +15,7 @@
         <p>RW List Finder Web</p>
         <h1>Review Lists</h1>
       </div>
+      <span class="live-pill">Live</span>
     </header>
 
     <main class="app-main">
@@ -45,7 +46,10 @@
 
       <section class="list-panel">
         <div class="list-head">
-          <strong id="resultCount">0 lists</strong>
+          <div>
+            <strong id="resultCount">0 lists</strong>
+            <span>ready to copy</span>
+          </div>
           <span id="pageInfo">Page 1 of 1</span>
         </div>
         <div id="statusMessage" class="status"></div>
@@ -59,6 +63,7 @@
 
     <div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
     <aside class="admin-drawer" id="adminDrawer" aria-label="Admin panel" aria-hidden="true">
+      <div class="drawer-grip"></div>
       <div class="drawer-header">
         <div>
           <p>Admin Panel</p>

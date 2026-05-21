@@ -1,14 +1,18 @@
 :root {
-  --bg: #f2f5f8;
+  --bg: #edf3f8;
   --panel: #ffffff;
-  --panel-soft: #f7f9fc;
-  --text: #141b2d;
-  --muted: #687386;
-  --line: #dce4ee;
+  --panel-soft: #f7faff;
+  --text: #101827;
+  --muted: #647184;
+  --line: #d9e4ef;
   --brand: #0f67d8;
   --brand-dark: #0a4fa9;
-  --success: #168463;
+  --brand-soft: #e8f2ff;
+  --success: #14845f;
+  --success-soft: #e8f8f1;
   --danger: #c93b3b;
+  --danger-soft: #fff1f1;
+  --shadow: 0 18px 44px rgba(18, 35, 60, 0.13);
 }
 
 * {
@@ -18,7 +22,9 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 10% -10%, rgba(15, 103, 216, 0.16), transparent 28%),
+    linear-gradient(180deg, #f8fbff 0%, var(--bg) 38%, #e8eef5 100%);
   color: var(--text);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -31,6 +37,11 @@ textarea {
 
 button {
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:active {
+  transform: scale(0.98);
 }
 
 button:disabled {
@@ -42,13 +53,15 @@ button:disabled {
   position: sticky;
   top: 0;
   z-index: 10;
-  min-height: 64px;
+  min-height: 66px;
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  background: var(--panel);
-  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.88);
+  border-bottom: 1px solid rgba(217, 228, 239, 0.86);
+  box-shadow: 0 12px 28px rgba(31, 45, 67, 0.08);
+  backdrop-filter: blur(18px);
 }
 
 .app-header p,
@@ -68,24 +81,25 @@ h2 {
 }
 
 h1 {
-  font-size: 1.12rem;
+  font-size: 1.16rem;
 }
 
 h2 {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
 }
 
 .menu-button {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   flex: 0 0 auto;
   display: grid;
   place-content: center;
   gap: 5px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(15, 103, 216, 0.16);
   border-radius: 8px;
-  background: var(--panel-soft);
-  color: var(--text);
+  background: linear-gradient(180deg, #ffffff, #edf5ff);
+  color: var(--brand);
+  box-shadow: 0 8px 22px rgba(15, 103, 216, 0.14);
 }
 
 .menu-button span {
@@ -94,6 +108,19 @@ h2 {
   display: block;
   border-radius: 999px;
   background: currentColor;
+}
+
+.live-pill {
+  margin-left: auto;
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--success-soft);
+  color: var(--success);
+  font-size: 0.78rem;
+  font-weight: 900;
 }
 
 .app-main {
@@ -105,18 +132,21 @@ h2 {
 .search-panel,
 .list-panel,
 .list-card {
-  background: var(--panel);
-  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(217, 228, 239, 0.92);
   border-radius: 8px;
+  box-shadow: var(--shadow);
 }
 
 .search-panel {
   position: sticky;
-  top: 64px;
+  top: 66px;
   z-index: 8;
   display: grid;
   gap: 10px;
   padding: 10px;
+  backdrop-filter: blur(14px);
+  animation: panelIn 260ms ease both;
 }
 
 .search-field {
@@ -145,25 +175,27 @@ label {
   gap: 5px;
   color: var(--muted);
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 850;
 }
 
 input,
 textarea {
   width: 100%;
-  min-height: 44px;
+  min-height: 46px;
   padding: 10px 11px;
   border: 1px solid var(--line);
   border-radius: 8px;
   outline: none;
   background: var(--panel-soft);
   color: var(--text);
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 
 input:focus,
 textarea:focus {
   border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(15, 103, 216, 0.16);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(15, 103, 216, 0.15);
 }
 
 .date-grid,
@@ -179,16 +211,18 @@ textarea:focus {
 .copy-button,
 .close-button,
 .logout-button {
-  min-height: 44px;
+  min-height: 46px;
   border-radius: 8px;
   cursor: pointer;
-  font-weight: 850;
+  font-weight: 900;
+  transition: transform 130ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 
 .primary-button {
   border: 1px solid var(--brand);
-  background: var(--brand);
+  background: linear-gradient(180deg, #1877ee, var(--brand));
   color: #fff;
+  box-shadow: 0 10px 22px rgba(15, 103, 216, 0.24);
 }
 
 .primary-button:hover {
@@ -198,13 +232,14 @@ textarea:focus {
 .secondary-button,
 .close-button {
   border: 1px solid var(--line);
-  background: var(--panel-soft);
+  background: #fff;
   color: var(--text);
 }
 
 .list-panel {
   margin-top: 10px;
   padding: 10px;
+  animation: panelIn 320ms ease both;
 }
 
 .list-head {
@@ -212,12 +247,23 @@ textarea:focus {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  min-height: 32px;
+  min-height: 38px;
   color: var(--muted);
+}
+
+.list-head div {
+  display: grid;
+  gap: 2px;
 }
 
 .list-head strong {
   color: var(--text);
+  font-size: 1.02rem;
+}
+
+.list-head span {
+  font-size: 0.82rem;
+  font-weight: 800;
 }
 
 .status {
@@ -234,10 +280,21 @@ textarea:focus {
 .results {
   display: grid;
   gap: 10px;
+  transition: opacity 160ms ease;
+}
+
+.results.loading {
+  opacity: 0.5;
 }
 
 .list-card {
   overflow: hidden;
+  animation: cardIn 260ms ease both;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.list-card:active {
+  transform: translateY(1px) scale(0.995);
 }
 
 .list-info {
@@ -254,7 +311,7 @@ textarea:focus {
 }
 
 .app-name {
-  font-size: 1.04rem;
+  font-size: 1.06rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -268,8 +325,12 @@ textarea:focus {
 
 .line-count {
   flex: 0 0 auto;
+  align-self: start;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #f0f4f8;
   color: var(--muted);
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .preview {
@@ -290,8 +351,12 @@ textarea:focus {
   border: 0;
   border-top: 1px solid var(--line);
   border-radius: 0;
-  background: #eaf2ff;
+  background: linear-gradient(180deg, #f3f8ff, #e7f1ff);
   color: var(--brand);
+}
+
+.copy-button:not(:disabled):active {
+  background: #dbeaff;
 }
 
 .pager {
@@ -303,24 +368,37 @@ textarea:focus {
   inset: 0;
   z-index: 20;
   background: rgba(10, 18, 32, 0.42);
+  animation: fadeIn 180ms ease both;
+  backdrop-filter: blur(4px);
 }
 
 .admin-drawer {
   position: fixed;
-  inset: 0 0 0 auto;
+  inset: auto 0 0;
   z-index: 21;
-  width: min(420px, 100%);
+  width: 100%;
+  max-height: min(88vh, 720px);
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto minmax(0, 1fr);
   gap: 12px;
-  padding: 14px;
-  background: var(--panel);
-  transform: translateX(105%);
-  transition: transform 180ms ease;
+  padding: 10px 14px 14px;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 -22px 56px rgba(8, 18, 32, 0.24);
+  transform: translateY(105%);
+  transition: transform 220ms cubic-bezier(.2, .8, .2, 1);
 }
 
 .admin-drawer.open {
-  transform: translateX(0);
+  transform: translateY(0);
+}
+
+.drawer-grip {
+  width: 42px;
+  height: 5px;
+  margin: 0 auto 2px;
+  border-radius: 999px;
+  background: #c8d3df;
 }
 
 .drawer-header {
@@ -331,6 +409,7 @@ textarea:focus {
 }
 
 .close-button {
+  min-height: 40px;
   padding: 0 12px;
 }
 
@@ -338,7 +417,7 @@ textarea:focus {
   min-height: 22px;
   color: var(--muted);
   font-size: 0.9rem;
-  font-weight: 750;
+  font-weight: 800;
 }
 
 .drawer-status.error {
@@ -360,15 +439,55 @@ textarea:focus {
 }
 
 #listInput {
-  min-height: min(58vh, 520px);
+  min-height: min(56vh, 520px);
   resize: vertical;
   white-space: pre-wrap;
 }
 
 .logout-button {
   border: 1px solid #f1c4c4;
-  background: #fff2f2;
+  background: var(--danger-soft);
   color: var(--danger);
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
 }
 
 @media (min-width: 760px) {
@@ -384,5 +503,17 @@ textarea:focus {
   .date-grid,
   .filter-actions {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-drawer {
+    inset: 0 0 0 auto;
+    width: min(430px, 100%);
+    max-height: none;
+    border-radius: 8px 0 0 8px;
+    transform: translateX(105%);
+  }
+
+  .admin-drawer.open {
+    transform: translateX(0);
   }
 }

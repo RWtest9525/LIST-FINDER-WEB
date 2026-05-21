@@ -65,19 +65,25 @@ function updateAdminUi() {
 function openDrawer() {
   updateAdminUi();
   drawerBackdrop.hidden = false;
-  adminDrawer.classList.add("open");
-  adminDrawer.setAttribute("aria-hidden", "false");
-  if (!isAdminUnlocked()) {
-    adminPinInput.focus();
-  } else {
-    listInput.focus();
-  }
+  requestAnimationFrame(() => {
+    adminDrawer.classList.add("open");
+    adminDrawer.setAttribute("aria-hidden", "false");
+    if (!isAdminUnlocked()) {
+      adminPinInput.focus();
+    } else {
+      listInput.focus();
+    }
+  });
 }
 
 function closeDrawer() {
-  drawerBackdrop.hidden = true;
   adminDrawer.classList.remove("open");
   adminDrawer.setAttribute("aria-hidden", "true");
+  setTimeout(() => {
+    if (!adminDrawer.classList.contains("open")) {
+      drawerBackdrop.hidden = true;
+    }
+  }, 220);
 }
 
 async function copyText(text) {
@@ -150,13 +156,18 @@ async function loadLists(page = 1) {
   params.set("page", page);
   params.set("pageSize", state.pageSize);
 
+  results.classList.add("loading");
   setStatus("Loading...");
-  const response = await fetch(`/api/lists?${params.toString()}`);
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error || "Could not load lists.");
+  try {
+    const response = await fetch(`/api/lists?${params.toString()}`);
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || "Could not load lists.");
+    }
+    renderLists(data.lists, data.meta);
+  } finally {
+    results.classList.remove("loading");
   }
-  renderLists(data.lists, data.meta);
 }
 
 function resetFilters() {
