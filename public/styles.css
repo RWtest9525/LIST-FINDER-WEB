@@ -655,14 +655,59 @@ form {
 }
 
 @media (max-width: 680px) {
-  .topbar {
-    min-height: 74px;
+  body {
+    background: var(--panel-soft);
   }
 
-  .stats-grid,
+  .topbar {
+    min-height: 68px;
+    padding: 12px 14px;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  .content {
+    width: 100%;
+    margin: 10px 0 28px;
+    gap: 10px;
+    padding: 0 10px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .stat-tile {
+    min-height: 72px;
+    padding: 10px;
+    box-shadow: none;
+  }
+
+  .stat-tile span {
+    font-size: 0.72rem;
+  }
+
+  .stat-tile strong {
+    font-size: 1rem;
+  }
+
   .search-grid,
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .panel {
+    padding: 12px;
+    box-shadow: none;
+  }
+
+  #finderView > .panel:first-child {
+    position: sticky;
+    top: 68px;
+    z-index: 3;
   }
 
   .panel-header,
@@ -678,6 +723,16 @@ form {
 
   .list-open {
     grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 12px;
+  }
+
+  .list-date {
+    font-size: 0.88rem;
+  }
+
+  .list-open strong {
+    font-size: 1.04rem;
   }
 
   .copy-button {
@@ -690,5 +745,19 @@ form {
   .pager {
     display: grid;
     grid-template-columns: 1fr;
+  }
+
+  .detail-panel {
+    min-height: calc(100vh - 90px);
+  }
+
+  .detail-content {
+    max-height: calc(100vh - 260px);
+    min-height: 360px;
+    font-size: 0.92rem;
+  }
+
+  #listInput {
+    min-height: 48vh;
   }
 }

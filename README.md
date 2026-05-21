@@ -31,4 +31,4 @@ Lists are stored on the computer running the server in `data/lists.json`, so oth
 
 Admin logs in once from the menu/sidebar. Upload then accepts only the pasted sheet/list and automatically detects app name and date. Supported date examples include `2026-05-21`, `21-05-2026`, `21/05/26`, and `21.05.2026`. Sheet columns named `App` and `Date` are supported. Results are arranged date wise automatically.
 
-The Finder uses paged results so it stays responsive with thousands of stored lists.
+The Finder uses paged summary results so it stays responsive with thousands of stored lists. Full pasted review-name content is loaded only when a user opens or copies a specific list.

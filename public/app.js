@@ -44,7 +44,7 @@ const state = {
   view: "finderView",
   previousView: "finderView",
   page: 1,
-  pageSize: 25,
+  pageSize: window.matchMedia("(max-width: 680px)").matches ? 10 : 15,
   pageCount: 1,
   adminPin: sessionStorage.getItem("rw-admin-pin") || "",
   selectedList: null
@@ -123,6 +123,15 @@ async function fetchAllText() {
   return response.text();
 }
 
+async function fetchListDetail(id) {
+  const response = await fetch(`/api/lists/${encodeURIComponent(id)}`);
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || "Could not load this list.");
+  }
+  return data.list;
+}
+
 async function loadStats() {
   const response = await fetch("/api/stats");
   const data = await response.json();
@@ -161,9 +170,12 @@ function renderLists(lists, meta) {
     node.querySelector("small").textContent = `${item.lineCount} lines`;
     node.querySelector("pre").textContent = item.preview || item.content;
 
-    openButton.addEventListener("click", () => openDetail(item));
+    openButton.addEventListener("click", () => {
+      openDetail(item).catch((error) => setStatus(error.message, "error"));
+    });
     copyButton.addEventListener("click", async () => {
-      await copyText(exactCopyText(item));
+      const detail = await fetchListDetail(item.id);
+      await copyText(exactCopyText(detail));
       setStatus("Copied exactly as pasted.", "success");
     });
 
@@ -196,13 +208,16 @@ async function loadLists(page = 1) {
   renderLists(data.lists, data.meta);
 }
 
-function openDetail(item) {
-  state.selectedList = item;
+async function openDetail(item) {
+  setStatus("Opening full list...");
+  const detail = item.content ? item : await fetchListDetail(item.id);
+  state.selectedList = detail;
   detailNavButton.disabled = false;
-  detailAppName.textContent = item.appName;
-  detailDate.textContent = formatDate(item.date);
-  detailContent.textContent = item.content;
+  detailAppName.textContent = detail.appName;
+  detailDate.textContent = formatDate(detail.date);
+  detailContent.textContent = detail.content;
   setView("detailView");
+  setStatus("Full list loaded.", "success");
 }
 
 function resetFilters() {

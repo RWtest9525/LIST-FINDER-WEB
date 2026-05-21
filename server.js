@@ -37,18 +37,22 @@ async function writeLists(lists) {
   await fs.writeFile(DATA_FILE, JSON.stringify(lists, null, 2), "utf8");
 }
 
-function publicList(item) {
+function publicList(item, options = {}) {
   const lines = item.content.split(/\r?\n/).filter(Boolean);
-
-  return {
+  const list = {
     id: item.id,
     appName: item.appName,
     date: item.date,
-    content: item.content,
     preview: lines.slice(0, 3).join("\n"),
     lineCount: lines.length,
     createdAt: item.createdAt
   };
+
+  if (options.includeContent) {
+    list.content = item.content;
+  }
+
+  return list;
 }
 
 function normalizeText(value) {
@@ -171,7 +175,7 @@ app.get("/api/lists", async (req, res) => {
   const fromDate = normalizeDate(req.query.fromDate);
   const toDate = normalizeDate(req.query.toDate);
   const page = boundedNumber(req.query.page, 1, 1, 100000);
-  const pageSize = boundedNumber(req.query.pageSize, 25, 10, 100);
+  const pageSize = boundedNumber(req.query.pageSize, 15, 10, 50);
 
   const results = lists
     .filter((item) => {
@@ -186,7 +190,7 @@ app.get("/api/lists", async (req, res) => {
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const safePage = Math.min(page, pageCount);
   const start = (safePage - 1) * pageSize;
-  const pageResults = results.slice(start, start + pageSize).map(publicList);
+  const pageResults = results.slice(start, start + pageSize).map((item) => publicList(item));
 
   res.json({
     lists: pageResults,
@@ -228,7 +232,7 @@ app.get("/api/lists/:id", async (req, res) => {
     return res.status(404).json({ error: "List not found." });
   }
 
-  res.json({ list: publicList(item) });
+  res.json({ list: publicList(item, { includeContent: true }) });
 });
 
 app.post("/api/admin/login", (req, res) => {
@@ -265,7 +269,7 @@ app.post("/api/lists", async (req, res) => {
 
   lists.push(item);
   await writeLists(lists);
-  res.status(201).json({ list: publicList(item) });
+  res.status(201).json({ list: publicList(item, { includeContent: true }) });
 });
 
 app.delete("/api/lists/:id", async (req, res) => {
