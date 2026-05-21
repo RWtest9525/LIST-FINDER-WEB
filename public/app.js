@@ -1,19 +1,51 @@
+const sidebar = document.querySelector("#sidebar");
 const menuButton = document.querySelector("#menuButton");
-const menuPanel = document.querySelector("#menuPanel");
 const themeButton = document.querySelector("#themeButton");
 const shareAllButton = document.querySelector("#shareAllButton");
 const copyAllButton = document.querySelector("#copyAllButton");
+const navItems = document.querySelectorAll(".nav-item");
+const detailNavButton = document.querySelector("#detailNavButton");
+const backButton = document.querySelector("#backButton");
+const detailBackButton = document.querySelector("#detailBackButton");
+const viewEyebrow = document.querySelector("#viewEyebrow");
+const viewTitle = document.querySelector("#viewTitle");
 const searchInput = document.querySelector("#searchInput");
 const fromDateInput = document.querySelector("#fromDateInput");
 const toDateInput = document.querySelector("#toDateInput");
 const searchButton = document.querySelector("#searchButton");
+const clearFiltersButton = document.querySelector("#clearFiltersButton");
+const prevPageButton = document.querySelector("#prevPageButton");
+const nextPageButton = document.querySelector("#nextPageButton");
 const uploadForm = document.querySelector("#uploadForm");
 const clearFormButton = document.querySelector("#clearFormButton");
 const results = document.querySelector("#results");
 const template = document.querySelector("#listTemplate");
 const statusMessage = document.querySelector("#statusMessage");
 const resultCount = document.querySelector("#resultCount");
+const pageInfo = document.querySelector("#pageInfo");
 const resultsTitle = document.querySelector("#resultsTitle");
+const totalLists = document.querySelector("#totalLists");
+const totalApps = document.querySelector("#totalApps");
+const latestDate = document.querySelector("#latestDate");
+const detailAppName = document.querySelector("#detailAppName");
+const detailDate = document.querySelector("#detailDate");
+const detailContent = document.querySelector("#detailContent");
+const detailCopyButton = document.querySelector("#detailCopyButton");
+
+const state = {
+  view: "finderView",
+  previousView: "finderView",
+  page: 1,
+  pageSize: 25,
+  pageCount: 1,
+  selectedList: null
+};
+
+const viewTitles = {
+  finderView: ["Finder", "Search Lists"],
+  adminView: ["Admin", "Upload List"],
+  detailView: ["Selected List", "List Details"]
+};
 
 const savedTheme = localStorage.getItem("rw-theme");
 if (savedTheme === "dark") {
@@ -24,6 +56,33 @@ if (savedTheme === "dark") {
 function setStatus(message, type = "") {
   statusMessage.textContent = message;
   statusMessage.className = `status ${type}`.trim();
+}
+
+function setView(viewId, rememberPrevious = true) {
+  if (rememberPrevious && state.view !== viewId) {
+    state.previousView = state.view;
+  }
+  state.view = viewId;
+
+  document.querySelectorAll(".view").forEach((view) => {
+    view.classList.toggle("active", view.id === viewId);
+  });
+
+  navItems.forEach((item) => {
+    item.classList.toggle("active", item.dataset.view === viewId);
+  });
+
+  const [eyebrow, title] = viewTitles[viewId] || viewTitles.finderView;
+  viewEyebrow.textContent = eyebrow;
+  viewTitle.textContent = title;
+  backButton.hidden = viewId === "finderView";
+  sidebar.classList.remove("open");
+}
+
+function formatDate(date) {
+  if (!date) return "-";
+  const [year, month, day] = date.split("-");
+  return `${day}-${month}-${year}`;
 }
 
 function exactCopyText(item) {
@@ -40,9 +99,25 @@ async function fetchAllText() {
   return response.text();
 }
 
-function renderLists(lists) {
+async function loadStats() {
+  const response = await fetch("/api/stats");
+  const data = await response.json();
+  if (!response.ok) return;
+
+  totalLists.textContent = data.totalLists;
+  totalApps.textContent = data.totalApps;
+  latestDate.textContent = formatDate(data.latestDate);
+}
+
+function renderLists(lists, meta) {
   results.replaceChildren();
-  resultCount.textContent = `${lists.length} found`;
+  state.page = meta.page;
+  state.pageCount = meta.pageCount;
+
+  resultCount.textContent = `${meta.total} found`;
+  pageInfo.textContent = `Page ${meta.page} of ${meta.pageCount}`;
+  prevPageButton.disabled = meta.page <= 1;
+  nextPageButton.disabled = meta.page >= meta.pageCount;
 
   if (!lists.length) {
     setStatus("No list found. Try another app name or clear the date range.");
@@ -52,18 +127,27 @@ function renderLists(lists) {
   setStatus("Showing matching lists arranged date wise.", "success");
   lists.forEach((item) => {
     const node = template.content.cloneNode(true);
-    node.querySelector("h3").textContent = item.appName;
-    node.querySelector("p").textContent = item.date;
-    node.querySelector("pre").textContent = item.content;
-    node.querySelector(".copy-button").addEventListener("click", async () => {
+    const card = node.querySelector(".list-card");
+    const openButton = node.querySelector(".list-open");
+    const copyButton = node.querySelector(".copy-button");
+
+    card.dataset.id = item.id;
+    node.querySelector("strong").textContent = item.appName;
+    node.querySelector(".list-date").textContent = formatDate(item.date);
+    node.querySelector("small").textContent = `${item.lineCount} lines`;
+    node.querySelector("pre").textContent = item.preview || item.content;
+
+    openButton.addEventListener("click", () => openDetail(item));
+    copyButton.addEventListener("click", async () => {
       await copyText(exactCopyText(item));
       setStatus("Copied exactly as pasted.", "success");
     });
+
     results.appendChild(node);
   });
 }
 
-async function loadLists() {
+async function loadLists(page = 1) {
   const params = new URLSearchParams();
   const appName = searchInput.value.trim();
   const fromDate = fromDateInput.value;
@@ -72,8 +156,10 @@ async function loadLists() {
   if (appName) params.set("appName", appName);
   if (fromDate) params.set("fromDate", fromDate);
   if (toDate) params.set("toDate", toDate);
+  params.set("page", page);
+  params.set("pageSize", state.pageSize);
 
-  resultsTitle.textContent = appName || fromDate || toDate ? "Search Results" : "All Lists";
+  resultsTitle.textContent = appName || fromDate || toDate ? "Filtered Lists" : "All Lists";
   setStatus("Loading lists...");
 
   const response = await fetch(`/api/lists?${params.toString()}`);
@@ -83,17 +169,42 @@ async function loadLists() {
     throw new Error(data.error || "Could not load lists.");
   }
 
-  renderLists(data.lists);
+  renderLists(data.lists, data.meta);
+}
+
+function openDetail(item) {
+  state.selectedList = item;
+  detailNavButton.disabled = false;
+  detailAppName.textContent = item.appName;
+  detailDate.textContent = formatDate(item.date);
+  detailContent.textContent = item.content;
+  setView("detailView");
+}
+
+function resetFilters() {
+  searchInput.value = "";
+  fromDateInput.value = "";
+  toDateInput.value = "";
+  loadLists(1).catch((error) => setStatus(error.message, "error"));
 }
 
 menuButton.addEventListener("click", () => {
-  menuPanel.hidden = !menuPanel.hidden;
+  sidebar.classList.toggle("open");
 });
 
-document.addEventListener("click", (event) => {
-  if (!menuPanel.hidden && !menuPanel.contains(event.target) && !menuButton.contains(event.target)) {
-    menuPanel.hidden = true;
-  }
+navItems.forEach((item) => {
+  item.addEventListener("click", () => {
+    if (item.disabled) return;
+    setView(item.dataset.view);
+  });
+});
+
+backButton.addEventListener("click", () => {
+  setView(state.previousView || "finderView", false);
+});
+
+detailBackButton.addEventListener("click", () => {
+  setView("finderView", false);
 });
 
 themeButton.addEventListener("click", () => {
@@ -104,21 +215,35 @@ themeButton.addEventListener("click", () => {
 });
 
 searchButton.addEventListener("click", () => {
-  loadLists().catch((error) => setStatus(error.message, "error"));
+  loadLists(1).catch((error) => setStatus(error.message, "error"));
 });
 
 searchInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
-    loadLists().catch((error) => setStatus(error.message, "error"));
+    loadLists(1).catch((error) => setStatus(error.message, "error"));
   }
 });
 
 fromDateInput.addEventListener("change", () => {
-  loadLists().catch((error) => setStatus(error.message, "error"));
+  loadLists(1).catch((error) => setStatus(error.message, "error"));
 });
 
 toDateInput.addEventListener("change", () => {
-  loadLists().catch((error) => setStatus(error.message, "error"));
+  loadLists(1).catch((error) => setStatus(error.message, "error"));
+});
+
+clearFiltersButton.addEventListener("click", resetFilters);
+
+prevPageButton.addEventListener("click", () => {
+  if (state.page > 1) {
+    loadLists(state.page - 1).catch((error) => setStatus(error.message, "error"));
+  }
+});
+
+nextPageButton.addEventListener("click", () => {
+  if (state.page < state.pageCount) {
+    loadLists(state.page + 1).catch((error) => setStatus(error.message, "error"));
+  }
 });
 
 uploadForm.addEventListener("submit", async (event) => {
@@ -146,11 +271,19 @@ uploadForm.addEventListener("submit", async (event) => {
 
   uploadForm.reset();
   setStatus("List uploaded successfully.", "success");
-  await loadLists();
+  await loadStats();
+  await loadLists(1);
+  setView("finderView");
 });
 
 clearFormButton.addEventListener("click", () => {
   uploadForm.reset();
+});
+
+detailCopyButton.addEventListener("click", async () => {
+  if (!state.selectedList) return;
+  await copyText(state.selectedList.content);
+  setStatus("Copied exactly as pasted.", "success");
 });
 
 copyAllButton.addEventListener("click", async () => {
@@ -181,4 +314,5 @@ shareAllButton.addEventListener("click", async () => {
   }
 });
 
+loadStats();
 loadLists().catch((error) => setStatus(error.message, "error"));

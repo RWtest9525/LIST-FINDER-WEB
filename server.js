@@ -38,11 +38,15 @@ async function writeLists(lists) {
 }
 
 function publicList(item) {
+  const lines = item.content.split(/\r?\n/).filter(Boolean);
+
   return {
     id: item.id,
     appName: item.appName,
     date: item.date,
     content: item.content,
+    preview: lines.slice(0, 3).join("\n"),
+    lineCount: lines.length,
     createdAt: item.createdAt
   };
 }
@@ -107,11 +111,19 @@ function compareListDates(a, b) {
   return new Date(b.createdAt) - new Date(a.createdAt);
 }
 
+function boundedNumber(value, fallback, min, max) {
+  const number = Number.parseInt(value, 10);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(Math.max(number, min), max);
+}
+
 app.get("/api/lists", async (req, res) => {
   const lists = await readLists();
   const appName = normalizeText(req.query.appName).toLowerCase();
   const fromDate = normalizeDate(req.query.fromDate);
   const toDate = normalizeDate(req.query.toDate);
+  const page = boundedNumber(req.query.page, 1, 1, 100000);
+  const pageSize = boundedNumber(req.query.pageSize, 25, 10, 100);
 
   const results = lists
     .filter((item) => {
@@ -120,10 +132,23 @@ app.get("/api/lists", async (req, res) => {
       const beforeTo = !toDate || item.date <= toDate;
       return matchesName && afterFrom && beforeTo;
     })
-    .sort(compareListDates)
-    .map(publicList);
+    .sort(compareListDates);
 
-  res.json({ lists: results });
+  const total = results.length;
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(page, pageCount);
+  const start = (safePage - 1) * pageSize;
+  const pageResults = results.slice(start, start + pageSize).map(publicList);
+
+  res.json({
+    lists: pageResults,
+    meta: {
+      total,
+      page: safePage,
+      pageSize,
+      pageCount
+    }
+  });
 });
 
 app.get("/api/lists/all-text", async (_req, res) => {
@@ -134,6 +159,28 @@ app.get("/api/lists/all-text", async (_req, res) => {
     .join("\n\n---\n\n");
 
   res.type("text/plain").send(text);
+});
+
+app.get("/api/stats", async (_req, res) => {
+  const lists = await readLists();
+  const appNames = new Set(lists.map((item) => item.appName.toLowerCase()));
+  const latestDate = lists.reduce((latest, item) => item.date > latest ? item.date : latest, "");
+
+  res.json({
+    totalLists: lists.length,
+    totalApps: appNames.size,
+    latestDate
+  });
+});
+
+app.get("/api/lists/:id", async (req, res) => {
+  const lists = await readLists();
+  const item = lists.find((list) => list.id === req.params.id);
+  if (!item) {
+    return res.status(404).json({ error: "List not found." });
+  }
+
+  res.json({ list: publicList(item) });
 });
 
 app.post("/api/lists", async (req, res) => {
