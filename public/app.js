@@ -1,126 +1,87 @@
-const sidebar = document.querySelector("#sidebar");
 const menuButton = document.querySelector("#menuButton");
-const themeButton = document.querySelector("#themeButton");
-const shareAllButton = document.querySelector("#shareAllButton");
-const copyAllButton = document.querySelector("#copyAllButton");
+const closeDrawerButton = document.querySelector("#closeDrawerButton");
+const drawerBackdrop = document.querySelector("#drawerBackdrop");
+const adminDrawer = document.querySelector("#adminDrawer");
+const drawerTitle = document.querySelector("#drawerTitle");
+const drawerStatus = document.querySelector("#drawerStatus");
 const adminLoginForm = document.querySelector("#adminLoginForm");
 const adminPinInput = document.querySelector("#adminPinInput");
-const adminState = document.querySelector("#adminState");
-const pinRow = document.querySelector("#pinRow");
-const adminLogoutButton = document.querySelector("#adminLogoutButton");
-const adminLockedPanel = document.querySelector("#adminLockedPanel");
 const adminUploadPanel = document.querySelector("#adminUploadPanel");
-const navItems = document.querySelectorAll(".nav-item");
-const detailNavButton = document.querySelector("#detailNavButton");
-const backButton = document.querySelector("#backButton");
-const detailBackButton = document.querySelector("#detailBackButton");
-const viewEyebrow = document.querySelector("#viewEyebrow");
-const viewTitle = document.querySelector("#viewTitle");
+const adminLogoutButton = document.querySelector("#adminLogoutButton");
+const uploadForm = document.querySelector("#uploadForm");
+const clearFormButton = document.querySelector("#clearFormButton");
+const listInput = document.querySelector("#listInput");
+
 const searchInput = document.querySelector("#searchInput");
 const fromDateInput = document.querySelector("#fromDateInput");
 const toDateInput = document.querySelector("#toDateInput");
 const searchButton = document.querySelector("#searchButton");
 const clearFiltersButton = document.querySelector("#clearFiltersButton");
-const prevPageButton = document.querySelector("#prevPageButton");
-const nextPageButton = document.querySelector("#nextPageButton");
-const uploadForm = document.querySelector("#uploadForm");
-const clearFormButton = document.querySelector("#clearFormButton");
 const results = document.querySelector("#results");
 const template = document.querySelector("#listTemplate");
-const globalStatus = document.querySelector("#globalStatus");
 const statusMessage = document.querySelector("#statusMessage");
 const resultCount = document.querySelector("#resultCount");
 const pageInfo = document.querySelector("#pageInfo");
-const resultsTitle = document.querySelector("#resultsTitle");
-const totalLists = document.querySelector("#totalLists");
-const totalApps = document.querySelector("#totalApps");
-const latestDate = document.querySelector("#latestDate");
-const detailAppName = document.querySelector("#detailAppName");
-const detailDate = document.querySelector("#detailDate");
-const detailContent = document.querySelector("#detailContent");
-const detailCopyButton = document.querySelector("#detailCopyButton");
+const prevPageButton = document.querySelector("#prevPageButton");
+const nextPageButton = document.querySelector("#nextPageButton");
 
 const state = {
-  view: "finderView",
-  previousView: "finderView",
   page: 1,
-  pageSize: window.matchMedia("(max-width: 680px)").matches ? 10 : 15,
+  pageSize: 10,
   pageCount: 1,
-  adminPin: sessionStorage.getItem("rw-admin-pin") || "",
-  selectedList: null
+  adminPin: sessionStorage.getItem("rw-admin-pin") || ""
 };
-
-const viewTitles = {
-  finderView: ["Finder", "Search Lists"],
-  adminView: ["Admin", "Upload List"],
-  detailView: ["Selected List", "List Details"]
-};
-
-const savedTheme = localStorage.getItem("rw-theme");
-if (savedTheme === "dark") {
-  document.body.classList.add("dark");
-  themeButton.textContent = "Light theme";
-}
-
-function setStatus(message, type = "") {
-  globalStatus.textContent = message;
-  globalStatus.className = `global-status ${type}`.trim();
-  statusMessage.textContent = message;
-  statusMessage.className = `status ${type}`.trim();
-}
 
 function isAdminUnlocked() {
   return state.adminPin === "952518";
 }
 
-function updateAdminUi() {
-  const unlocked = isAdminUnlocked();
-  adminState.textContent = unlocked ? "Admin unlocked" : "Admin locked";
-  pinRow.hidden = unlocked;
-  adminLogoutButton.hidden = !unlocked;
-  adminLockedPanel.hidden = unlocked;
-  adminUploadPanel.hidden = !unlocked;
-}
-
-function setView(viewId, rememberPrevious = true) {
-  if (rememberPrevious && state.view !== viewId) {
-    state.previousView = state.view;
-  }
-  state.view = viewId;
-
-  document.querySelectorAll(".view").forEach((view) => {
-    view.classList.toggle("active", view.id === viewId);
-  });
-
-  navItems.forEach((item) => {
-    item.classList.toggle("active", item.dataset.view === viewId);
-  });
-
-  const [eyebrow, title] = viewTitles[viewId] || viewTitles.finderView;
-  viewEyebrow.textContent = eyebrow;
-  viewTitle.textContent = title;
-  backButton.hidden = viewId === "finderView";
-  sidebar.classList.remove("open");
-}
-
 function formatDate(date) {
-  if (!date) return "-";
+  if (!date) return "";
   const [year, month, day] = date.split("-");
   return `${day}-${month}-${year}`;
 }
 
-function exactCopyText(item) {
-  return item.content;
+function setStatus(message, type = "") {
+  statusMessage.textContent = message;
+  statusMessage.className = `status ${type}`.trim();
+}
+
+function setDrawerStatus(message, type = "") {
+  drawerStatus.textContent = message;
+  drawerStatus.className = `drawer-status ${type}`.trim();
+}
+
+function updateAdminUi() {
+  const unlocked = isAdminUnlocked();
+  drawerTitle.textContent = unlocked ? "Upload List" : "Unlock Upload";
+  adminLoginForm.hidden = unlocked;
+  adminUploadPanel.hidden = !unlocked;
+  if (!unlocked) {
+    setDrawerStatus("");
+  }
+}
+
+function openDrawer() {
+  updateAdminUi();
+  drawerBackdrop.hidden = false;
+  adminDrawer.classList.add("open");
+  adminDrawer.setAttribute("aria-hidden", "false");
+  if (!isAdminUnlocked()) {
+    adminPinInput.focus();
+  } else {
+    listInput.focus();
+  }
+}
+
+function closeDrawer() {
+  drawerBackdrop.hidden = true;
+  adminDrawer.classList.remove("open");
+  adminDrawer.setAttribute("aria-hidden", "true");
 }
 
 async function copyText(text) {
   await navigator.clipboard.writeText(text);
-}
-
-async function fetchAllText() {
-  const response = await fetch("/api/lists/all-text");
-  if (!response.ok) throw new Error("Could not load all lists.");
-  return response.text();
 }
 
 async function fetchListDetail(id) {
@@ -132,55 +93,49 @@ async function fetchListDetail(id) {
   return data.list;
 }
 
-async function loadStats() {
-  const response = await fetch("/api/stats");
-  const data = await response.json();
-  if (!response.ok) return;
-
-  totalLists.textContent = data.totalLists;
-  totalApps.textContent = data.totalApps;
-  latestDate.textContent = formatDate(data.latestDate);
-}
-
 function renderLists(lists, meta) {
   results.replaceChildren();
   state.page = meta.page;
   state.pageCount = meta.pageCount;
 
-  resultCount.textContent = `${meta.total} found`;
+  resultCount.textContent = `${meta.total} lists`;
   pageInfo.textContent = `Page ${meta.page} of ${meta.pageCount}`;
   prevPageButton.disabled = meta.page <= 1;
   nextPageButton.disabled = meta.page >= meta.pageCount;
 
   if (!lists.length) {
-    setStatus("No list found. Try another app name or clear the date range.");
+    setStatus("No list found.", "");
     return;
   }
 
-  setStatus("Showing matching lists arranged date wise.", "success");
-  lists.forEach((item) => {
+  setStatus("");
+  for (const item of lists) {
     const node = template.content.cloneNode(true);
-    const card = node.querySelector(".list-card");
-    const openButton = node.querySelector(".list-open");
-    const copyButton = node.querySelector(".copy-button");
-
-    card.dataset.id = item.id;
-    node.querySelector("strong").textContent = item.appName;
+    node.querySelector(".app-name").textContent = item.appName;
     node.querySelector(".list-date").textContent = formatDate(item.date);
-    node.querySelector("small").textContent = `${item.lineCount} lines`;
-    node.querySelector("pre").textContent = item.preview || item.content;
-
-    openButton.addEventListener("click", () => {
-      openDetail(item).catch((error) => setStatus(error.message, "error"));
+    node.querySelector(".line-count").textContent = `${item.lineCount} lines`;
+    node.querySelector(".preview").textContent = item.preview || "";
+    node.querySelector(".copy-button").addEventListener("click", async (event) => {
+      const button = event.currentTarget;
+      const oldText = button.textContent;
+      button.disabled = true;
+      button.textContent = "Copying...";
+      try {
+        const detail = await fetchListDetail(item.id);
+        await copyText(detail.content);
+        button.textContent = "Copied";
+        setTimeout(() => {
+          button.textContent = oldText;
+          button.disabled = false;
+        }, 900);
+      } catch (error) {
+        button.textContent = oldText;
+        button.disabled = false;
+        setStatus(error.message, "error");
+      }
     });
-    copyButton.addEventListener("click", async () => {
-      const detail = await fetchListDetail(item.id);
-      await copyText(exactCopyText(detail));
-      setStatus("Copied exactly as pasted.", "success");
-    });
-
     results.appendChild(node);
-  });
+  }
 }
 
 async function loadLists(page = 1) {
@@ -195,29 +150,13 @@ async function loadLists(page = 1) {
   params.set("page", page);
   params.set("pageSize", state.pageSize);
 
-  resultsTitle.textContent = appName || fromDate || toDate ? "Filtered Lists" : "All Lists";
-  setStatus("Loading lists...");
-
+  setStatus("Loading...");
   const response = await fetch(`/api/lists?${params.toString()}`);
   const data = await response.json();
-
   if (!response.ok) {
     throw new Error(data.error || "Could not load lists.");
   }
-
   renderLists(data.lists, data.meta);
-}
-
-async function openDetail(item) {
-  setStatus("Opening full list...");
-  const detail = item.content ? item : await fetchListDetail(item.id);
-  state.selectedList = detail;
-  detailNavButton.disabled = false;
-  detailAppName.textContent = detail.appName;
-  detailDate.textContent = formatDate(detail.date);
-  detailContent.textContent = detail.content;
-  setView("detailView");
-  setStatus("Full list loaded.", "success");
 }
 
 function resetFilters() {
@@ -227,9 +166,9 @@ function resetFilters() {
   loadLists(1).catch((error) => setStatus(error.message, "error"));
 }
 
-menuButton.addEventListener("click", () => {
-  sidebar.classList.toggle("open");
-});
+menuButton.addEventListener("click", openDrawer);
+closeDrawerButton.addEventListener("click", closeDrawer);
+drawerBackdrop.addEventListener("click", closeDrawer);
 
 adminLoginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -240,9 +179,8 @@ adminLoginForm.addEventListener("submit", async (event) => {
     body: JSON.stringify({ pin })
   });
   const data = await response.json();
-
   if (!response.ok) {
-    setStatus(data.error || "Admin login failed.", "error");
+    setDrawerStatus(data.error || "Wrong PIN.", "error");
     return;
   }
 
@@ -250,37 +188,45 @@ adminLoginForm.addEventListener("submit", async (event) => {
   sessionStorage.setItem("rw-admin-pin", pin);
   adminPinInput.value = "";
   updateAdminUi();
-  setStatus("Admin unlocked. Upload panel is ready.", "success");
-  setView("adminView");
+  setDrawerStatus("Admin unlocked.", "success");
+  listInput.focus();
 });
 
 adminLogoutButton.addEventListener("click", () => {
   state.adminPin = "";
   sessionStorage.removeItem("rw-admin-pin");
   updateAdminUi();
-  setStatus("Admin locked.", "success");
 });
 
-navItems.forEach((item) => {
-  item.addEventListener("click", () => {
-    if (item.disabled) return;
-    setView(item.dataset.view);
+uploadForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const content = listInput.value;
+  if (!content.trim()) {
+    setDrawerStatus("Paste list first.", "error");
+    return;
+  }
+
+  setDrawerStatus("Uploading...");
+  const response = await fetch("/api/lists", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pin: state.adminPin, content })
   });
+  const data = await response.json();
+  if (!response.ok) {
+    setDrawerStatus(data.error || "Upload failed.", "error");
+    return;
+  }
+
+  listInput.value = "";
+  setDrawerStatus("Uploaded. Paste next list.", "success");
+  await loadLists(1);
+  listInput.focus();
 });
 
-backButton.addEventListener("click", () => {
-  setView(state.previousView || "finderView", false);
-});
-
-detailBackButton.addEventListener("click", () => {
-  setView("finderView", false);
-});
-
-themeButton.addEventListener("click", () => {
-  document.body.classList.toggle("dark");
-  const isDark = document.body.classList.contains("dark");
-  localStorage.setItem("rw-theme", isDark ? "dark" : "light");
-  themeButton.textContent = isDark ? "Light theme" : "Dark theme";
+clearFormButton.addEventListener("click", () => {
+  listInput.value = "";
+  listInput.focus();
 });
 
 searchButton.addEventListener("click", () => {
@@ -315,72 +261,5 @@ nextPageButton.addEventListener("click", () => {
   }
 });
 
-uploadForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  setStatus("Uploading list...");
-
-  const payload = {
-    pin: state.adminPin,
-    content: document.querySelector("#listInput").value
-  };
-
-  const response = await fetch("/api/lists", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-  const data = await response.json();
-
-  if (!response.ok) {
-    setStatus(data.error || "Upload failed.", "error");
-    return;
-  }
-
-  uploadForm.reset();
-  setStatus("List uploaded successfully.", "success");
-  await loadStats();
-  await loadLists(1);
-  setView("finderView");
-});
-
-clearFormButton.addEventListener("click", () => {
-  uploadForm.reset();
-});
-
-detailCopyButton.addEventListener("click", async () => {
-  if (!state.selectedList) return;
-  await copyText(state.selectedList.content);
-  setStatus("Copied exactly as pasted.", "success");
-});
-
-copyAllButton.addEventListener("click", async () => {
-  try {
-    const text = await fetchAllText();
-    await copyText(text);
-    setStatus("All lists copied.", "success");
-  } catch (error) {
-    setStatus(error.message, "error");
-  }
-});
-
-shareAllButton.addEventListener("click", async () => {
-  try {
-    const text = await fetchAllText();
-    if (navigator.share) {
-      await navigator.share({
-        title: "RW List Finder Web Lists",
-        text
-      });
-      setStatus("Share sheet opened.", "success");
-      return;
-    }
-    await copyText(text);
-    setStatus("Sharing is not available here, so all lists were copied.", "success");
-  } catch (error) {
-    setStatus(error.message, "error");
-  }
-});
-
-loadStats();
 updateAdminUi();
 loadLists().catch((error) => setStatus(error.message, "error"));
