@@ -1,0 +1,12 @@
+{
+  "name": "rw-list-finder-web",
+  "version": "1.0.0",
+  "description": "RW List Finder Web for uploading, searching, copying, and sharing app lists.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

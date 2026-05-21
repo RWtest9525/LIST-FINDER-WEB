@@ -1,0 +1,32 @@
+# RW List Finder Web
+
+Local web app for uploading app lists, searching by app name and optional date range, and copying lists exactly as they were pasted.
+
+## Run
+
+```powershell
+npm install
+npm start
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+Other devices on the same Wi-Fi/network can open the LAN address shown by:
+
+```powershell
+Invoke-RestMethod http://localhost:3000/api/network
+```
+
+Admin upload PIN:
+
+```text
+952518
+```
+
+Lists are stored on the computer running the server in `data/lists.json`, so other devices do not need to save files.
+
+Upload dates can be selected manually or detected automatically from the pasted list. Supported date examples include `2026-05-21`, `21-05-2026`, `21/05/26`, and `21.05.2026`. Results are arranged date wise automatically.

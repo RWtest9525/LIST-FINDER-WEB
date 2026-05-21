@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RW List Finder Web</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">RW List Finder Web</p>
+        <h1>List Finder</h1>
+      </div>
+      <button class="icon-button" id="menuButton" aria-label="Open menu" title="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="menu" id="menuPanel" hidden>
+        <button id="themeButton">Dark theme</button>
+        <button id="shareAllButton">Share all lists</button>
+        <button id="copyAllButton">Copy all lists</button>
+      </div>
+    </header>
+
+    <main class="shell">
+      <section class="search-band">
+        <div class="search-row">
+          <label class="search-field" for="searchInput">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m21 21-4.35-4.35m2.35-5.15a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" />
+            </svg>
+            <input id="searchInput" type="search" placeholder="Search app name" autocomplete="off" />
+          </label>
+          <label class="compact-date">
+            From
+            <input id="fromDateInput" type="date" />
+          </label>
+          <label class="compact-date">
+            To
+            <input id="toDateInput" type="date" />
+          </label>
+          <button id="searchButton" class="primary-button">Search</button>
+        </div>
+      </section>
+
+      <section class="admin-panel" aria-label="Admin upload panel">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Admin panel</p>
+            <h2>Upload List</h2>
+          </div>
+          <span>PIN protected</span>
+        </div>
+        <form id="uploadForm">
+          <div class="form-grid">
+            <label>
+              Admin PIN
+              <input id="pinInput" type="password" inputmode="numeric" placeholder="Enter PIN" required />
+            </label>
+            <label>
+              App name
+              <input id="appNameInput" type="text" placeholder="Example: WhatsApp" required />
+            </label>
+            <label>
+              List date
+              <input id="uploadDateInput" type="date" />
+            </label>
+          </div>
+          <p class="hint">Date can be selected here or written inside the pasted list. Supported examples: 2026-05-21, 21-05-2026, 21/05/26.</p>
+          <label>
+            Paste list exactly here
+            <textarea id="listInput" rows="8" placeholder="Paste your full list here..." required></textarea>
+          </label>
+          <div class="actions">
+            <button class="primary-button" type="submit">Upload list</button>
+            <button class="secondary-button" type="button" id="clearFormButton">Clear</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="results-panel">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Results</p>
+            <h2 id="resultsTitle">All Lists</h2>
+          </div>
+          <span id="resultCount">0 found</span>
+        </div>
+        <div id="statusMessage" class="status"></div>
+        <div id="results" class="results"></div>
+      </section>
+    </main>
+
+    <template id="listTemplate">
+      <article class="list-card">
+        <div class="list-head">
+          <div>
+            <h3></h3>
+            <p></p>
+          </div>
+          <button class="copy-button">Copy</button>
+        </div>
+        <pre></pre>
+      </article>
+    </template>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
