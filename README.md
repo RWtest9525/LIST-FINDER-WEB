@@ -1,6 +1,6 @@
 # RW List Finder Web
 
-Local dashboard app for uploading app lists, searching by app name and optional date range, opening lists in a detail panel, and copying lists exactly as they were pasted.
+Local dashboard app for unlocking admin upload once, pasting sheet/list data, searching by app name and optional date range, opening lists in a detail panel, and copying lists exactly as they were pasted.
 
 ## Run
 
@@ -29,6 +29,6 @@ Admin upload PIN:
 
 Lists are stored on the computer running the server in `data/lists.json`, so other devices do not need to save files.
 
-Upload dates can be selected manually or detected automatically from the pasted list. Supported date examples include `2026-05-21`, `21-05-2026`, `21/05/26`, and `21.05.2026`. Results are arranged date wise automatically.
+Admin logs in once from the menu/sidebar. Upload then accepts only the pasted sheet/list and automatically detects app name and date. Supported date examples include `2026-05-21`, `21-05-2026`, `21/05/26`, and `21.05.2026`. Sheet columns named `App` and `Date` are supported. Results are arranged date wise automatically.
 
 The Finder uses paged results so it stays responsive with thousands of stored lists.

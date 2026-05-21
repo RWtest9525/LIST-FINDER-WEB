@@ -33,6 +33,14 @@
         </nav>
 
         <div class="side-actions">
+          <form class="admin-login" id="adminLoginForm">
+            <span id="adminState">Admin locked</span>
+            <div class="pin-row" id="pinRow">
+              <input id="adminPinInput" type="password" inputmode="numeric" placeholder="Admin PIN" />
+              <button id="adminLoginButton" type="submit">Login</button>
+            </div>
+            <button id="adminLogoutButton" class="side-button" type="button" hidden>Logout admin</button>
+          </form>
           <button id="themeButton" class="side-button" type="button">Dark theme</button>
           <button id="shareAllButton" class="side-button" type="button">Share all lists</button>
           <button id="copyAllButton" class="side-button" type="button">Copy all lists</button>
@@ -52,6 +60,8 @@
         </header>
 
         <main class="content">
+          <div id="globalStatus" class="global-status"></div>
+
           <section class="stats-grid" aria-label="Summary">
             <div class="stat-tile">
               <span>Total lists</span>
@@ -117,33 +127,30 @@
           </section>
 
           <section class="view" id="adminView">
-            <div class="panel">
+            <div class="panel locked-panel" id="adminLockedPanel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Admin login</p>
+                  <h3>Unlock Upload Panel</h3>
+                </div>
+                <span class="secure-pill">PIN 952518</span>
+              </div>
+              <p class="hint">Use the admin login in the left menu. After unlocking, this app will not ask for the PIN again during this session.</p>
+            </div>
+
+            <div class="panel" id="adminUploadPanel" hidden>
               <div class="panel-header">
                 <div>
                   <p class="eyebrow">Admin panel</p>
                   <h3>Upload a List</h3>
                 </div>
-                <span class="secure-pill">PIN protected</span>
+                <span class="secure-pill">Unlocked</span>
               </div>
               <form id="uploadForm">
-                <div class="form-grid">
-                  <label>
-                    Admin PIN
-                    <input id="pinInput" type="password" inputmode="numeric" placeholder="Enter PIN" required />
-                  </label>
-                  <label>
-                    App name
-                    <input id="appNameInput" type="text" placeholder="Example: WhatsApp" required />
-                  </label>
-                  <label>
-                    List date
-                    <input id="uploadDateInput" type="date" />
-                  </label>
-                </div>
-                <p class="hint">Date can be selected here or written inside the pasted list. Supported examples: 2026-05-21, 21-05-2026, 21/05/26.</p>
+                <p class="hint">Paste the sheet/list only. The app will fetch the app name and date automatically, then arrange it date wise. Good formats include lines like App: WhatsApp, Date: 21-05-2026, or sheet columns named App and Date.</p>
                 <label>
-                  Paste list exactly here
-                  <textarea id="listInput" rows="12" placeholder="Paste your full list here..." required></textarea>
+                  Paste sheet/list exactly here
+                  <textarea id="listInput" rows="14" placeholder="App: WhatsApp&#10;Date: 21-05-2026&#10;Paste the full list or sheet rows here..." required></textarea>
                 </label>
                 <div class="actions">
                   <button class="primary-button" type="submit">Upload list</button>

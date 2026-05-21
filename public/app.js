@@ -3,6 +3,13 @@ const menuButton = document.querySelector("#menuButton");
 const themeButton = document.querySelector("#themeButton");
 const shareAllButton = document.querySelector("#shareAllButton");
 const copyAllButton = document.querySelector("#copyAllButton");
+const adminLoginForm = document.querySelector("#adminLoginForm");
+const adminPinInput = document.querySelector("#adminPinInput");
+const adminState = document.querySelector("#adminState");
+const pinRow = document.querySelector("#pinRow");
+const adminLogoutButton = document.querySelector("#adminLogoutButton");
+const adminLockedPanel = document.querySelector("#adminLockedPanel");
+const adminUploadPanel = document.querySelector("#adminUploadPanel");
 const navItems = document.querySelectorAll(".nav-item");
 const detailNavButton = document.querySelector("#detailNavButton");
 const backButton = document.querySelector("#backButton");
@@ -20,6 +27,7 @@ const uploadForm = document.querySelector("#uploadForm");
 const clearFormButton = document.querySelector("#clearFormButton");
 const results = document.querySelector("#results");
 const template = document.querySelector("#listTemplate");
+const globalStatus = document.querySelector("#globalStatus");
 const statusMessage = document.querySelector("#statusMessage");
 const resultCount = document.querySelector("#resultCount");
 const pageInfo = document.querySelector("#pageInfo");
@@ -38,6 +46,7 @@ const state = {
   page: 1,
   pageSize: 25,
   pageCount: 1,
+  adminPin: sessionStorage.getItem("rw-admin-pin") || "",
   selectedList: null
 };
 
@@ -54,8 +63,23 @@ if (savedTheme === "dark") {
 }
 
 function setStatus(message, type = "") {
+  globalStatus.textContent = message;
+  globalStatus.className = `global-status ${type}`.trim();
   statusMessage.textContent = message;
   statusMessage.className = `status ${type}`.trim();
+}
+
+function isAdminUnlocked() {
+  return state.adminPin === "952518";
+}
+
+function updateAdminUi() {
+  const unlocked = isAdminUnlocked();
+  adminState.textContent = unlocked ? "Admin unlocked" : "Admin locked";
+  pinRow.hidden = unlocked;
+  adminLogoutButton.hidden = !unlocked;
+  adminLockedPanel.hidden = unlocked;
+  adminUploadPanel.hidden = !unlocked;
 }
 
 function setView(viewId, rememberPrevious = true) {
@@ -192,6 +216,36 @@ menuButton.addEventListener("click", () => {
   sidebar.classList.toggle("open");
 });
 
+adminLoginForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const pin = adminPinInput.value.trim();
+  const response = await fetch("/api/admin/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pin })
+  });
+  const data = await response.json();
+
+  if (!response.ok) {
+    setStatus(data.error || "Admin login failed.", "error");
+    return;
+  }
+
+  state.adminPin = pin;
+  sessionStorage.setItem("rw-admin-pin", pin);
+  adminPinInput.value = "";
+  updateAdminUi();
+  setStatus("Admin unlocked. Upload panel is ready.", "success");
+  setView("adminView");
+});
+
+adminLogoutButton.addEventListener("click", () => {
+  state.adminPin = "";
+  sessionStorage.removeItem("rw-admin-pin");
+  updateAdminUi();
+  setStatus("Admin locked.", "success");
+});
+
 navItems.forEach((item) => {
   item.addEventListener("click", () => {
     if (item.disabled) return;
@@ -251,9 +305,7 @@ uploadForm.addEventListener("submit", async (event) => {
   setStatus("Uploading list...");
 
   const payload = {
-    pin: document.querySelector("#pinInput").value,
-    appName: document.querySelector("#appNameInput").value,
-    date: document.querySelector("#uploadDateInput").value,
+    pin: state.adminPin,
     content: document.querySelector("#listInput").value
   };
 
@@ -315,4 +367,5 @@ shareAllButton.addEventListener("click", async () => {
 });
 
 loadStats();
+updateAdminUi();
 loadLists().catch((error) => setStatus(error.message, "error"));

@@ -105,6 +105,54 @@ function extractDateFromContent(content) {
   return "";
 }
 
+function splitSheetLine(line) {
+  return line
+    .split(/\t|,|\||;|\s{2,}/)
+    .map((cell) => normalizeText(cell))
+    .filter(Boolean);
+}
+
+function cleanAppName(value) {
+  return normalizeText(value)
+    .replace(/\b\d{4}[-/]\d{1,2}[-/]\d{1,2}\b/g, "")
+    .replace(/\b\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}\b/g, "")
+    .replace(/^(app|application|platform|app name|name)\s*[:=-]\s*/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function extractAppNameFromContent(content) {
+  const text = typeof content === "string" ? content : "";
+  const labeled = text.match(/(?:^|\n)\s*(?:app|application|platform)\s*(?:name)?\s*[:=-]\s*([^\r\n|,;\t]+)/i);
+  if (labeled) {
+    const appName = cleanAppName(labeled[1]);
+    if (appName) return appName;
+  }
+
+  const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  for (let index = 0; index < lines.length - 1; index += 1) {
+    const headers = splitSheetLine(lines[index]).map((cell) => cell.toLowerCase());
+    const appIndex = headers.findIndex((cell) => ["app", "app name", "application", "platform"].includes(cell));
+    if (appIndex === -1) continue;
+
+    for (let rowIndex = index + 1; rowIndex < lines.length; rowIndex += 1) {
+      const row = splitSheetLine(lines[rowIndex]);
+      const appName = cleanAppName(row[appIndex] || "");
+      if (appName) return appName;
+    }
+  }
+
+  for (const line of lines.slice(0, 8)) {
+    if (normalizeDate(line)) continue;
+    const appName = cleanAppName(line);
+    const lower = appName.toLowerCase();
+    const isGeneric = ["date", "name", "list", "sr no", "s no", "number"].includes(lower);
+    if (appName && appName.length <= 50 && !isGeneric) return appName;
+  }
+
+  return "";
+}
+
 function compareListDates(a, b) {
   const dateCompare = b.date.localeCompare(a.date);
   if (dateCompare !== 0) return dateCompare;
@@ -183,18 +231,27 @@ app.get("/api/lists/:id", async (req, res) => {
   res.json({ list: publicList(item) });
 });
 
+app.post("/api/admin/login", (req, res) => {
+  const pin = normalizeText(req.body.pin);
+  if (pin !== ADMIN_PIN) {
+    return res.status(403).json({ error: "Invalid admin PIN." });
+  }
+
+  res.json({ ok: true });
+});
+
 app.post("/api/lists", async (req, res) => {
   const pin = normalizeText(req.body.pin);
   if (pin !== ADMIN_PIN) {
     return res.status(403).json({ error: "Invalid admin PIN." });
   }
 
-  const appName = normalizeText(req.body.appName);
   const content = typeof req.body.content === "string" ? req.body.content : "";
+  const appName = normalizeText(req.body.appName) || extractAppNameFromContent(content);
   const date = normalizeDate(req.body.date) || extractDateFromContent(content);
 
   if (!appName || !date || !content.trim()) {
-    return res.status(400).json({ error: "App name and list content are required. Add a date in the date field or inside the pasted list." });
+    return res.status(400).json({ error: "Paste a list containing both app name and date. Example lines: App: WhatsApp and Date: 21-05-2026." });
   }
 
   const lists = await readLists();

@@ -169,6 +169,49 @@ h3 {
   margin-top: auto;
 }
 
+.admin-login {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.admin-login span {
+  color: var(--sidebar-text);
+  font-size: 0.92rem;
+  font-weight: 850;
+}
+
+.pin-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.pin-row input {
+  min-height: 40px;
+  color: var(--sidebar-text);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.pin-row input::placeholder {
+  color: var(--sidebar-muted);
+}
+
+.pin-row button {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--brand);
+  border-radius: 8px;
+  background: var(--brand);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 850;
+}
+
 .workspace {
   min-width: 0;
 }
@@ -231,6 +274,32 @@ h3 {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
+}
+
+.global-status {
+  min-height: 0;
+  padding: 0;
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.global-status:not(:empty) {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.global-status.error {
+  color: var(--danger);
+}
+
+.global-status.success {
+  color: var(--accent);
 }
 
 .stat-tile,
@@ -509,6 +578,10 @@ form {
 
 .detail-panel {
   min-height: 560px;
+}
+
+.locked-panel {
+  min-height: 180px;
 }
 
 .detail-toolbar {
